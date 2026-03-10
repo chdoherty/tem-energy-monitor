@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tem. Energy Market Intelligence Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF3F10;
+    --orange-light: #FFF0EC;
+    --dark: #0F0F0F;
+    --grey900: #222; --grey800: #333; --grey700: #444; --grey600: #666;
+    --grey500: #888; --grey400: #AAA; --grey300: #CCC; --grey200: #E5E5E5;
+    --grey100: #F2F2F2; --grey50: #F8F8F8; --white: #FFF;
+    --red: #E53935; --amber: #F9A825; --green: #43A047; --blue: #1E88E5; --purple: #7B61FF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--grey100); color: var(--dark); }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .header { background: var(--dark); padding: 20px 24px; border-bottom: 3px solid var(--orange); }
+  .header-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .header-title { display: flex; align-items: center; gap: 10px; }
+  .header-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 8px rgba(255,63,16,0.5); }
+  .header-name { font-size: 18px; font-weight: 800; color: var(--white); letter-spacing: -0.3px; }
+  .header-name span { color: var(--orange); }
+  .header-sub { font-size: 11.5px; color: var(--grey400); margin-top: 4px; margin-left: 18px; }
+  .header-stats { display: flex; gap: 16px; align-items: center; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 800; }
+  .stat-num.orange { color: var(--orange); }
+  .stat-num.white { color: var(--white); }
+  .stat-label { font-size: 9px; color: var(--grey400); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-divider { width: 1px; height: 30px; background: #444; }
+
+  .tabs { background: var(--white); border-bottom: 1px solid var(--grey200); padding: 0 24px; display: flex; max-width: 768px; margin: 0 auto; }
+  .tab { padding: 12px 18px; font-size: 12.5px; font-weight: 500; color: var(--grey500); background: none; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-family: inherit; transition: all 0.15s ease; }
+  .tab.active { font-weight: 700; color: var(--orange); border-bottom-color: var(--orange); }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 24px 16px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .alert-banner { padding: 12px 16px; background: var(--orange-light); border: 1px solid rgba(255,63,16,0.19); border-radius: 8px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+  .alert-banner-icon { font-size: 16px; }
+  .alert-banner-title { font-size: 12px; font-weight: 700; color: var(--orange); }
+  .alert-banner-body { font-size: 12px; color: var(--grey700); margin-top: 2px; }
+
+  .section { margin-bottom: 28px; }
+  .section-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .section-icon { font-size: 16px; }
+  .section-title { font-size: 15px; font-weight: 700; color: var(--dark); }
+  .section-badge { font-size: 10px; font-weight: 700; color: var(--white); background: var(--red); border-radius: 10px; padding: 1px 7px; line-height: 16px; }
+  .section-sub { font-size: 11.5px; color: var(--grey500); margin: 0 0 12px 24px; }
+
+  .item { padding: 14px 16px; border-left: 3px solid var(--grey300); background: var(--white); border-radius: 0 6px 6px 0; cursor: pointer; transition: all 0.15s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.03); margin-bottom: 8px; }
+  .item:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .item.border-red { border-left-color: var(--red); }
+  .item.border-amber { border-left-color: var(--amber); }
+  .item.border-green { border-left-color: var(--green); }
+  .item.border-blue { border-left-color: var(--blue); }
+  .item.border-purple { border-left-color: var(--purple); }
+
+  .item-top { display: flex; align-items: center; justify-content: space-between; }
+  .item-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .priority { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .priority.high { color: var(--red); background: #FDEDED; border: 1px solid rgba(229,57,53,0.13); }
+  .priority.medium { color: var(--amber); background: #FFF8E1; border: 1px solid rgba(249,168,37,0.13); }
+  .priority.low { color: var(--green); background: #E8F5E9; border: 1px solid rgba(67,160,71,0.13); }
+  .item-source { font-size: 10px; color: var(--grey500); font-weight: 500; }
+  .item-title { font-size: 13.5px; font-weight: 600; color: var(--dark); margin-top: 6px; line-height: 1.35; }
+  .item-arrow { font-size: 16px; color: var(--grey400); transition: transform 0.2s ease; flex-shrink: 0; }
+  .item-arrow.open { transform: rotate(180deg); }
+
+  .item-detail { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--grey200); display: none; }
+  .item-detail.open { display: block; }
+  .item-body { font-size: 13px; color: var(--grey700); line-height: 1.65; }
+  .item-action { margin-top: 12px; padding: 8px 12px; background: var(--grey50); border-radius: 4px; display: flex; align-items: center; gap: 6px; }
+  .item-action-label { font-size: 11px; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.5px; }
+  .item-action-text { font-size: 12px; color: var(--grey700); }
+  .item-source-link { margin-top: 8px; font-size: 11px; font-weight: 500; }
+
+  .source-row { padding: 10px 12px; background: var(--white); border-radius: 6px; border: 1px solid var(--grey200); display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .source-name { font-size: 12.5px; font-weight: 600; color: var(--dark); }
+  .source-desc { font-size: 10.5px; color: var(--grey500); margin-top: 2px; }
+  .source-type { font-size: 9px; font-weight: 700; color: var(--grey500); text-transform: uppercase; letter-spacing: 0.5px; }
+  .source-freq { font-size: 10px; color: var(--grey400); margin-top: 2px; }
+
+  .how-step { display: flex; gap: 12px; margin-bottom: 16px; }
+  .how-num { width: 32px; height: 32px; border-radius: 50%; background: var(--orange); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .how-title { font-size: 13px; font-weight: 700; color: var(--dark); }
+  .how-desc { font-size: 12px; color: var(--grey600); line-height: 1.55; margin-top: 3px; }
+
+  .bio-box { margin-top: 24px; padding: 16px; background: var(--orange-light); border-radius: 8px; border: 1px solid rgba(255,63,16,0.13); }
+  .bio-name { font-size: 12px; font-weight: 700; color: var(--orange); margin-bottom: 6px; }
+  .bio-text { font-size: 11.5px; color: var(--grey700); line-height: 1.55; }
+
+  .footer { padding: 16px 24px; background: var(--dark); text-align: center; margin-top: 20px; }
+  .footer-text { font-size: 10.5px; color: var(--grey500); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">
+        <div class="header-dot"></div>
+        <span class="header-name">tem<span>.</span> Energy Market Intelligence</span>
+      </div>
+      <div class="header-sub">Week of 10 March 2026 · PROTOTYPE</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat"><div class="stat-num orange" id="high-count">5</div><div class="stat-label">High Priority</div></div>
+      <div class="stat-divider"></div>
+      <div class="stat"><div class="stat-num white" id="total-count">12</div><div class="stat-label">Total Items</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('brief')">Weekly Brief</button>
+  <button class="tab" onclick="switchTab('sources')">Sources</button>
+  <button class="tab" onclick="switchTab('about')">How It Works</button>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- BRIEF TAB -->
+  <div class="tab-panel active" id="panel-brief">
+    <div class="alert-banner">
+      <span class="alert-banner-icon">⚡</span>
+      <div>
+        <div class="alert-banner-title">This Week's Top Priority</div>
+        <div class="alert-banner-body">Ofgem non-domestic reforms now in force — tem should position RED as already delivering what regulators now require from legacy suppliers.</div>
+      </div>
+    </div>
+
+    <!-- ACTION ALERTS -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔴</span>
+        <span class="section-title">Action Alerts</span>
+        <span class="section-badge">2</span>
+      </div>
+      <p class="section-sub">Requires response this week</p>
+
+      <div class="item border-red" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">Ofgem · In force</span></div>
+            <div class="item-title">Ofgem non-domestic market reforms now in force — positioning window</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Ofgem's confirmed non-domestic retail market reforms are now live: expanded Standards of Conduct for all business sizes, mandatory broker fee transparency, and new complaint handling rules for small businesses. Ofgem found that 58% of businesses surveyed were concerned about energy affordability. tem should position its model as what compliant, transparent energy supply looks like — framing RED as already delivering what Ofgem is now requiring from legacy suppliers.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Blog post: 'tem already does what Ofgem now requires'</span></div>
+          <div class="item-source-link"><a href="https://www.ofgem.gov.uk/press-release/ofgem-confirms-greater-protection-businesses" target="_blank">🔗 Source: ofgem.gov.uk</a></div>
+        </div>
+      </div>
+
+      <div class="item border-red" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">UK Parliament · 3 Feb 2026</span></div>
+            <div class="item-title">Business and Trade Committee: energy costs a top priority for 2026</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">The Committee published its seven priorities for 2026, explicitly including 'bringing down costs — especially energy costs — and restoring competitive edge.' This is a direct policy signal that energy affordability for businesses will be under parliamentary scrutiny this year. tem should monitor for evidence calls and position itself as a case study of market innovation that delivers lower business costs without regulatory intervention.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Prepare written evidence for any forthcoming inquiry on energy costs</span></div>
+          <div class="item-source-link"><a href="https://www.parliament.uk/external/committees/news/2026/february/btc_business-and-trade-committee-sets-seven-priorities-for-uk-economic-revival/" target="_blank">🔗 Source: parliament.uk</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POLICY WATCH -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🟡</span>
+        <span class="section-title">Policy Watch</span>
+        <span class="section-badge">1</span>
+      </div>
+      <p class="section-sub">Regulatory developments affecting positioning</p>
+
+      <div class="item border-amber" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority medium">MEDIUM</span><span class="item-source">Great British Energy · Dec 2025</span></div>
+            <div class="item-title">GB Energy Strategic Plan: generation focus, not retail</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Great British Energy published its first Strategic Plan targeting 15GW of clean generation and storage capacity by 2030, with £8.3bn committed. Crucially, GBE will develop and own generation assets — it will not supply electricity directly to households or businesses. This is strategically positive for tem: the publicly-owned company builds supply, but the retail transaction layer remains open for private innovation. Content angle: 'GB Energy generates. tem delivers.'</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Content opportunity — position tem as the retail complement to GB Energy</span></div>
+          <div class="item-source-link"><a href="https://www.gbe.gov.uk/strategic-plan-2025-html" target="_blank">🔗 Source: gbe.gov.uk</a></div>
+        </div>
+      </div>
+
+      <div class="item border-amber" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority medium">MEDIUM</span><span class="item-source">EDF/Ofgem · 2026</span></div>
+            <div class="item-title">Ofgem to directly regulate energy brokers (TPIs)</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Ofgem has confirmed it will directly regulate Third Party Intermediaries (energy brokers) under a new compliance regime. This is a major shift — previously brokers operated with minimal oversight, contributing to the opaque pricing and hidden markups that inflate business energy costs. For tem, this validates the core thesis that the middleman layer is broken. As brokers face new regulatory costs, tem's direct-from-generator model becomes even more competitive.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Monitor implementation timeline — prepare messaging on broker regulation</span></div>
+          <div class="item-source-link"><a href="https://www.edfenergy.com/large-business/talk-power/blogs/energy-policy-insights-2026" target="_blank">🔗 Source: edfenergy.com</a></div>
+        </div>
+      </div>
+
+      <div class="item border-amber" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">Cornwall Insight · Jan 2026</span></div>
+            <div class="item-title">Non-commodity charges to reach 60% of business electricity bills</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Cornwall Insight forecasts that by 2026, non-commodity charges (network costs, policy levies, capacity market) will make up nearly 60% of a typical business electricity bill. This means wholesale energy costs are only 40% of what businesses pay — the rest is the system around it. This is a powerful data point for tem's messaging: even as renewable generation gets cheaper, the legacy transaction infrastructure keeps bills high.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Use in content — '60% of your energy bill isn't energy'</span></div>
+          <div class="item-source-link"><a href="https://www.cornwall-insight.com/thought-leadership/blog/energy-market-predictions-for-2026-the-trends-that-will-reshape-the-gb-power-system/" target="_blank">🔗 Source: cornwall-insight.com</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPETITOR MOVES -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🔵</span>
+        <span class="section-title">Competitor Moves</span>
+        <span class="section-badge">1</span>
+      </div>
+      <p class="section-sub">What others in the market did this week</p>
+
+      <div class="item border-blue" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">Octopus Energy · Ongoing</span></div>
+            <div class="item-title">Octopus Energy: Tracker tariff and business expansion</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Octopus continues to expand its transparent pricing products, including Tracker (daily wholesale-linked rates) and business-facing flexible green tariffs. Their Tracker tariff updates prices daily based on independently published wholesale costs and is marketed as giving customers visibility into the 'true cost of energy.' This is a direct narrative competitor to tem's transparency positioning — though the key distinction is that Octopus passes through wholesale market prices, while tem bypasses wholesale entirely via direct generator matching.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Develop clear comparison messaging: wholesale pass-through vs direct-from-generator</span></div>
+          <div class="item-source-link"><a href="https://octopus.energy/smart/tracker/" target="_blank">🔗 Source: octopus.energy</a></div>
+        </div>
+      </div>
+
+      <div class="item border-blue" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority medium">MEDIUM</span><span class="item-source">Cornwall Insight · Jan 2026</span></div>
+            <div class="item-title">Behind-the-meter solar and storage boom: 1GW+ expected in 2026</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Cornwall Insight expects more than 1GW of new behind-the-meter solar and battery storage from businesses in 2026, as companies try to cut costs and sidestep grid connection delays. This represents a different kind of competitor to tem: businesses taking energy supply into their own hands rather than trusting any supplier. tem should consider how RED complements on-site generation — positioning as the best route-to-market for remaining grid needs.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Explore hybrid positioning: RED + on-site generation = full energy independence</span></div>
+          <div class="item-source-link"><a href="https://www.cornwall-insight.com/thought-leadership/blog/energy-market-predictions-for-2026-the-trends-that-will-reshape-the-gb-power-system/" target="_blank">🔗 Source: cornwall-insight.com</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT HOOKS -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🟢</span>
+        <span class="section-title">Content Hooks</span>
+        <span class="section-badge">1</span>
+      </div>
+      <p class="section-sub">Stories and data for social, blog, and PR</p>
+
+      <div class="item border-green" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">Ofgem State of the Market · Jan 2026</span></div>
+            <div class="item-title">Ofgem State of the Market: 58% of businesses worried about energy costs</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Ofgem's latest non-domestic research found that 58% of businesses are concerned about energy affordability, with 42% 'very concerned.' This is published data from the regulator itself — strong for social content and PR. 'More than half of UK businesses are worried about energy costs. We built tem because we were too.'</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Social content using Ofgem's own data — pair with tem customer savings stats</span></div>
+          <div class="item-source-link"><a href="https://www.ofgem.gov.uk/sites/default/files/2026-01/State-of-the-Market-Energy-Retail-Highlights-January-2026.pdf" target="_blank">🔗 Source: ofgem.gov.uk (PDF)</a></div>
+        </div>
+      </div>
+
+      <div class="item border-green" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority medium">MEDIUM</span><span class="item-source">Ofgem · Q2 2026</span></div>
+            <div class="item-title">Price cap reduction for Q2 2026 — but business bills still high</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Ofgem announced a further reduction in household energy bills for April–June 2026, following the Autumn Budget pledge to cut bills by ~£150/year on average. But this only applies to domestic customers on default tariffs — businesses remain exposed to the full complexity of non-domestic pricing. This gap between domestic relief and business cost pressure is a content opportunity: 'Households get a cap. Businesses get a maze.'</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Content angle: domestic vs business energy experience</span></div>
+          <div class="item-source-link"><a href="https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap" target="_blank">🔗 Source: ofgem.gov.uk</a></div>
+        </div>
+      </div>
+
+      <div class="item border-green" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority low">LOW</span><span class="item-source">Sifted / Entrepreneur / Leaders in Cleantech · Recent</span></div>
+            <div class="item-title">Joe McDonald featured in Sifted, Entrepreneur, Leaders in Cleantech</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">Joe has recent media coverage positioning tem as a category-creating challenger. In Sifted, he discussed why he wouldn't sell tem to an oil major (unlike Limejump/Shell). In Leaders in Cleantech, he described tem as 'replacing the wholesale electricity market itself.' These quotes are strong brand assets — repurpose for social, investor comms, and recruitment marketing.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Repurpose founder media coverage across channels</span></div>
+          <div class="item-source-link"><a href="https://sifted.eu/articles/climate-tech-oil-gas-acquisitions" target="_blank">🔗 Source: sifted.eu</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NARRATIVE TRACKER -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-icon">🟣</span>
+        <span class="section-title">Narrative Tracker</span>
+        <span class="section-badge">1</span>
+      </div>
+      <p class="section-sub">How the public conversation is shifting</p>
+
+      <div class="item border-purple" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority high">HIGH</span><span class="item-source">Ofgem / Cornwall Insight · This week</span></div>
+            <div class="item-title">Dominant frame: bills falling, but business costs still high</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">The Q2 2026 price cap reduction is getting positive domestic coverage, but business energy remains a pressure point. Cornwall Insight notes that non-commodity charges are now the majority of business bills, and Ofgem's own research shows majority business concern about costs. The narrative gap — 'things are getting better for households, but not for businesses' — is tem's sweet spot. The inefficiency in the middle is exactly what RED eliminates.</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Data visualisation — wholesale price vs business bill vs RED pricing</span></div>
+          <div class="item-source-link"><a href="https://www.ofgem.gov.uk/sites/default/files/2026-01/State-of-the-Market-Energy-Retail-Highlights-January-2026.pdf" target="_blank">🔗 Source: ofgem.gov.uk (PDF)</a></div>
+        </div>
+      </div>
+
+      <div class="item border-purple" onclick="toggleItem(this)">
+        <div class="item-top">
+          <div style="flex:1;min-width:0">
+            <div class="item-meta"><span class="priority medium">MEDIUM</span><span class="item-source">Great British Energy · Emerging trend</span></div>
+            <div class="item-title">GB Energy and 'public ownership' shifting energy discourse</div>
+          </div>
+          <span class="item-arrow">▾</span>
+        </div>
+        <div class="item-detail">
+          <p class="item-body">The launch of GB Energy is shifting public conversation toward the idea that energy should serve public interest, not just private profit. GBE's messaging emphasises 'Clean, Secure, Yours' — a values-driven frame. tem's own brand narrative aligns: transparency, fairness, power back to customers. But there's a risk that 'public ownership' becomes the dominant solution frame, crowding out private innovation. tem should actively position as the private-sector complement: 'GB Energy owns the generation. tem democratises the transaction.'</p>
+          <div class="item-action"><span class="item-action-label">Action →</span><span class="item-action-text">Refine positioning vis-à-vis GB Energy — complementary, not competitive</span></div>
+          <div class="item-source-link"><a href="https://www.gbe.gov.uk/strategic-plan-2025-html" target="_blank">🔗 Source: gbe.gov.uk</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOURCES TAB -->
+  <div class="tab-panel" id="panel-sources">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:4px">Monitored Sources</h3>
+    <p style="font-size:11px;color:var(--grey500);margin-bottom:16px">Automated scraping and AI relevance analysis</p>
+
+    <div class="source-row"><div><div class="source-name">Ofgem</div><div class="source-desc">Consultations, enforcement, market reviews, State of the Market reports</div></div><div style="text-align:right"><div class="source-type">Regulator</div><div class="source-freq">Daily</div></div></div>
+    <div class="source-row"><div><div class="source-name">DESNZ</div><div class="source-desc">Policy papers, ministerial statements, GB Energy, Clean Power 2030</div></div><div style="text-align:right"><div class="source-type">Government</div><div class="source-freq">Daily</div></div></div>
+    <div class="source-row"><div><div class="source-name">Parliament</div><div class="source-desc">Written/oral questions, Select Committee hearings, debates</div></div><div style="text-align:right"><div class="source-type">Legislature</div><div class="source-freq">Daily</div></div></div>
+    <div class="source-row"><div><div class="source-name">Octopus Energy</div><div class="source-desc">Product launches, pricing, tariff updates, media coverage</div></div><div style="text-align:right"><div class="source-type">Competitor</div><div class="source-freq">Daily</div></div></div>
+    <div class="source-row"><div><div class="source-name">Good Energy</div><div class="source-desc">IR releases, positioning, customer comms, quarterly results</div></div><div style="text-align:right"><div class="source-type">Competitor</div><div class="source-freq">Weekly</div></div></div>
+    <div class="source-row"><div><div class="source-name">Shell Energy</div><div class="source-desc">B2B energy offerings, market moves, brand positioning</div></div><div style="text-align:right"><div class="source-type">Competitor</div><div class="source-freq">Weekly</div></div></div>
+    <div class="source-row"><div><div class="source-name">FT Energy</div><div class="source-desc">Energy sector coverage, op-eds, investigations, data</div></div><div style="text-align:right"><div class="source-type">Media</div><div class="source-freq">Daily</div></div></div>
+    <div class="source-row"><div><div class="source-name">BCC / FSB</div><div class="source-desc">SME surveys, energy cost data, policy positions</div></div><div style="text-align:right"><div class="source-type">Industry</div><div class="source-freq">Weekly</div></div></div>
+    <div class="source-row"><div><div class="source-name">Energy UK</div><div class="source-desc">Events, policy positions, market reports</div></div><div style="text-align:right"><div class="source-type">Industry body</div><div class="source-freq">Weekly</div></div></div>
+    <div class="source-row"><div><div class="source-name">Cornwall Insight</div><div class="source-desc">Market forecasts, pricing analysis, policy commentary</div></div><div style="text-align:right"><div class="source-type">Analysis</div><div class="source-freq">Weekly</div></div></div>
+  </div>
+
+  <!-- HOW IT WORKS TAB -->
+  <div class="tab-panel" id="panel-about">
+    <h3 style="font-size:14px;font-weight:700;margin-bottom:16px">How This Works</h3>
+
+    <div class="how-step"><div class="how-num">01</div><div><div class="how-title">Automated Collection</div><div class="how-desc">Python scrapers pull from 10+ sources daily — Ofgem, DESNZ, Parliament, competitor sites, industry bodies, and media. No manual scanning required.</div></div></div>
+    <div class="how-step"><div class="how-num">02</div><div><div class="how-title">AI Relevance Analysis</div><div class="how-desc">Claude API analyses each item against tem's brand positioning, competitive landscape, and marketing priorities. Assigns priority levels and identifies actionable opportunities.</div></div></div>
+    <div class="how-step"><div class="how-num">03</div><div><div class="how-title">Weekly Intelligence Brief</div><div class="how-desc">Every Monday morning, the marketing team receives a structured brief: action alerts, policy watch, competitor moves, content hooks, and narrative tracking.</div></div></div>
+    <div class="how-step"><div class="how-num">04</div><div><div class="how-title">Configurable &amp; Scalable</div><div class="how-desc">Sources, keywords, competitors, and priority logic can be adjusted as tem's market position and needs evolve. Estimated API cost: £15–25/month.</div></div></div>
+
+    <div class="bio-box">
+      <div class="bio-name">Built by Celia Doherty</div>
+      <div class="bio-text">MENA political and security risk analyst (AKE International, Institute for the Study of War) and Cornell linguistics graduate, based in London. This tool is adapted from a working Westminster Policy Monitor built using Python and the Claude API for political communications clients.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">Prototype built by Celia Doherty · Python + Claude API · Adapted from Westminster Policy Monitor</div>
+</div>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`#panel-${id}`).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggleItem(el) {
+  const detail = el.querySelector('.item-detail');
+  const arrow = el.querySelector('.item-arrow');
+  if (detail.classList.contains('open')) {
+    detail.classList.remove('open');
+    arrow.classList.remove('open');
+  } else {
+    detail.classList.add('open');
+    arrow.classList.add('open');
+  }
+}
+</script>
+</body>
+</html>
